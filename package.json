@@ -1,0 +1,46 @@
+{
+	"name": "kwork_parse",
+	"version": "1.0.0",
+	"description": "",
+	"main": "main.js",
+	"start": "node --experimental-modules",
+	"type": "commonjs",
+	"scripts": {
+		"electron dev": "electron main.js",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"build": "electron-builder",
+		"//exe": "npx electron-packager . --overwrite"
+	},
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"electron": "^25.3.1",
+		"electron-builder": "^24.13.3",
+		"electron-packager": "^17.1.1"
+	},
+	"dependencies": {
+		"axios": "^1.4.0",
+		"cheerio": "^1.0.0-rc.12",
+		"custom-electron-prompt": "^1.5.7",
+		"extract-url": "^1.0.0",
+		"extract-urls": "^1.3.4",
+		"get-urls": "^10.0.1",
+		"lodash": "^4.17.21",
+		"node-notifier": "^10.0.1",
+		"notifier": "^0.2.0",
+		"open": "^8.4.2",
+		"play-sound": "^1.1.5",
+		"sound-play": "^1.1.0"
+	},
+	"build": {
+		"extraResources": [
+			{
+				"from": "./extra-resources/",
+				"to": "extra-resources",
+				"filter": [
+					"**/*"
+				]
+			}
+		]
+	}
+}

@@ -1,0 +1,41 @@
+.job-list {
+	overflow-x: hidden;
+}
+
+.job-list .price {
+	height: 36px;
+}
+body {
+	scroll-behavior: smooth;
+}
+.bar {
+	height: 1rem;
+	border-radius: 3px;
+	margin: 1rem 0;
+	max-width: 500px;
+
+	animation-duration: 1.5s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: infinite;
+	animation-name: placeHolderShimmer;
+	animation-timing-function: linear;
+	background: #f6f7f8;
+	background: linear-gradient(to right, #3f3f3f 8%, #525252 18%, #3f3f3f 33%);
+	background-size: 1000px 1rem;
+}
+
+.bar_absolute {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%;
+}
+
+@keyframes placeHolderShimmer {
+	0% {
+		background-position: -300px 0;
+	}
+	100% {
+		background-position: 500px 0;
+	}
+}
