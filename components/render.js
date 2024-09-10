@@ -3,10 +3,7 @@ const { ipcRenderer, remote } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 const open = require('open');
-
-// eslint-disable-next-line import/no-extraneous-dependencies
 const extractUrls = require('get-urls');
 
 const listItemTemplatePath = path.join(__dirname, './html/listItem.html');
@@ -28,25 +25,34 @@ ipcRenderer.on('changeTitle', (event, newTitle) => {
 });
 
 // ipcRenderer.on('showList', (win, jobList) => {
-ipcRenderer.on('showList', (event, list) => {
+ipcRenderer.on('showList', async (event, list) => {
 	console.log('RENDER');
+	// console.log(list);
+	// document.title = `RENDER ${list.length}`;
+
+	const listElement = document.querySelector('.job-list');
 
 	if (list && list.length) {
 		const listHTML = list
-			.map((item) => {
-				const time = item.date_create.replace(/\d+-\d+-\d+ /, '');
-				const urls = extractUrls(item.description);
-				let { description } = item;
+			.map((item, i) => {
+				const time = item?.date_create.replace(/\d+-\d+-\d+ /, '') || 0;
+				let { description = '' } = item;
+				let urls = [];
 
-				urls.forEach((value) => {
+				urls = extractUrls(description);
+
+				// document.title = `urls ${urls.length}`;
+				[...urls].forEach((value) => {
 					console.log(value);
 					description = description.replace(
 						value,
-						`<a href="#" data-link="${value}" class="desc-link link-primary">
+						`<a href="#" data-link="${value}" class="desc-link link">
 							${value}
 				 		</a>`,
 					);
 				});
+
+				// document.title = `item ${i}`;
 
 				const newItem = listItemTemplate
 					.replaceAll('{{name}}', item.name)
@@ -59,7 +65,7 @@ ipcRenderer.on('showList', (event, list) => {
 			})
 			.join('');
 
-		const listElement = document.querySelector('.job-list');
+		// document.title = `listHTML ${listHTML.length}`;
 		listElement.innerHTML = listHTML;
 	}
 });

@@ -63,13 +63,14 @@ const parseHTML = async (win) => {
 			const isNew = !_.some(
 				jobList,
 				(element) =>
-					// eslint-disable-next-line implicit-arrow-linebreak
 					element.priceLimit === newElement.priceLimit &&
 					element.id === newElement.id &&
 					element.description === newElement.description,
 			);
 
-			if (isNew) {
+			const dateDiffH = (new Date() - new Date(newElement.date_create)) / 1000 / 60 / 60;
+
+			if (isNew && (dateDiffH < 1 || isFirstRun)) {
 				isListChanged++;
 				if (!newElement.url) {
 					newElement.url = `/projects/${newElement.id}`;
@@ -104,6 +105,7 @@ const parseHTML = async (win) => {
 			// if (!isFirstRun) {
 			sound.play(`${notifySoundFilePath}`);
 			// }
+			console.log(jobList);
 
 			win.webContents.send('showList', jobList);
 		}
