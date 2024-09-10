@@ -1,6 +1,6 @@
 module.exports = {
 	rules: {
-		'no-undef': 'warn',
+		// 'no-undef': 'warn',
 		'computed-property-spacing': ['error', 'never'],
 		'array-bracket-spacing': ['error', 'never'],
 		'semi': 'off',

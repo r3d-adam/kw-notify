@@ -10,6 +10,8 @@ const listItemTemplatePath = path.join(__dirname, './html/listItem.html');
 const listItemTemplate = fs.readFileSync(listItemTemplatePath, 'utf8');
 const projectLinkStart = 'https://kwork.ru/projects/';
 
+const { formatPrice } = window.utils;
+
 // ipcRenderer.invoke('getPlugins', '').then((result) => {
 // 	// ...
 // 	console.log(result);
@@ -56,7 +58,7 @@ ipcRenderer.on('showList', async (event, list) => {
 
 				const newItem = listItemTemplate
 					.replaceAll('{{name}}', item.name)
-					.replaceAll('{{price}}', item.priceLimit)
+					.replaceAll('{{price}}', formatPrice(item.priceLimit))
 					.replaceAll('{{description}}', description)
 					.replaceAll('{{time}}', time)
 					.replaceAll('{{url}}', `${projectLinkStart + item.id}`);

@@ -5,6 +5,10 @@
  *
  * https://www.electronjs.org/docs/latest/tutorial/sandbox
  */
+
+const utils = require('./utils/utils.js');
+window.utils = utils;
+
 window.addEventListener('DOMContentLoaded', () => {
 	const replaceText = (selector, text) => {
 		const element = document.getElementById(selector);
