@@ -68,3 +68,72 @@ body::-webkit-scrollbar-track {
 		background-position: 500px 0;
 	}
 }
+
+.load > div:after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	background-image: -webkit-gradient(
+		linear,
+		0 0,
+		100% 100%,
+		color-stop(0.25, rgba(255, 255, 255, 0.2)),
+		color-stop(0.25, transparent),
+		color-stop(0.5, transparent),
+		color-stop(0.5, rgba(255, 255, 255, 0.2)),
+		color-stop(0.75, rgba(255, 255, 255, 0.2)),
+		color-stop(0.75, transparent),
+		to(transparent)
+	);
+	background-image: -moz-linear-gradient(
+		-45deg,
+		rgba(255, 255, 255, 0.2) 25%,
+		transparent 25%,
+		transparent 50%,
+		rgba(255, 255, 255, 0.2) 50%,
+		rgba(255, 255, 255, 0.2) 75%,
+		transparent 75%,
+		transparent
+	);
+	z-index: 1;
+	-webkit-background-size: 50px 50px;
+	-moz-background-size: 50px 50px;
+	-webkit-animation: move 2s linear infinite;
+	overflow: hidden;
+}
+
+.load {
+	height: 8px;
+	position: fixed;
+	left: 0;
+	top: 0;
+	right: 0;
+	z-index: 10;
+}
+.load > div {
+	display: block;
+	height: 100%;
+	width: 100%;
+	font-size: 0;
+	background: #0d6efd;
+	background: -moz-linear-gradient(left, #0d6efd 0%, #00c8b8 74%, #00cefb 100%);
+	background: -webkit-linear-gradient(left, #0d6efd 0%, #00c8b8 74%, #00cefb 100%);
+	background: linear-gradient(to right, #0d6efd 0%, #00c8b8 74%, #00cefb 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#0d6efd", endColorstr="#00cefb", GradientType=1);
+	position: relative;
+	overflow: hidden;
+}
+/* .load > div:after {
+  display: none;
+} */
+@-webkit-keyframes move {
+	0% {
+		background-position: 0 0;
+	}
+	100% {
+		background-position: 50px 50px;
+	}
+}

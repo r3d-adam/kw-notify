@@ -9,23 +9,30 @@ const notifier = require('node-notifier');
 const axios = require('axios');
 const _ = require('lodash');
 const { parseHTML, jobList } = require('./components/parserHTML.js');
-const { saveConfig, loadConfig } = require('./components/config.js');
-const { getResourcePath } = require('./components/resourcePath.js');
+const { saveConfig, loadConfig } = require('./sevices/config.js');
+const { getResourcePath } = require('./utils/resourcePath.js');
 const {
 	setFilterUrlPrompt,
 	setUsernamePrompt,
 	setCookieValuePrompt,
-} = require('./components/userSettings.js');
+} = require('./sevices/userSettings.js');
+const sound = require('sound-play');
 
 const fs = require('fs');
 
 const open = require('open');
+const { store, storeObserver } = require('./sevices/store.js');
+const { compareByDateCreate, getTime } = require('./utils/utils.js');
 
-const extractUrls = require('get-urls');
+// const extractUrls = require('get-urls');
 
+/*
+ TODO: отправлять запрос на projects с FormData (парсим урл -> вставляем в formData.append* param, value)), а не парсить страницу
+ TODO: logging
+*/
 const REFRESH_INTERVAL = 60 * 1000;
 
-console.log(shared);
+// console.log(shared);
 
 const plugins = {};
 
@@ -41,6 +48,9 @@ global.app = {
 	configPath: getResourcePath('extra-resources/config.json'),
 	notifySoundFilePath: getResourcePath('extra-resources/sound/notify.mp3'),
 	newMessageSoundFilePath: getResourcePath('extra-resources/sound/new_message.mp3'),
+	store,
+	storeObserver,
+	fileConfig: null,
 };
 
 const init = () => {
@@ -89,7 +99,7 @@ app.whenReady().then(() => {
 		},
 	]);
 
-	console.log(path.join(__dirname, 'preload.js'));
+	// console.log(path.join(__dirname, 'preload.js'));
 	app.mainWindow = new BrowserWindow({
 		width: 600,
 		height: 900,
@@ -111,22 +121,7 @@ app.whenReady().then(() => {
 	tray.setContextMenu(contextMenu);
 	attachTrayListeners();
 
-	app.mainWindow.webContents.on('dom-ready', () => {
-		if (global.app.fileConfig) {
-			parseHTML(app.mainWindow);
-		} else {
-			const interval = setInterval(() => {
-				if (global.app.fileConfig) {
-					clearInterval(interval);
-					parseHTML(app.mainWindow);
-				}
-			}, 100);
-		}
-
-		setInterval(() => {
-			parseHTML(app.mainWindow);
-		}, REFRESH_INTERVAL);
-	});
+	app.mainWindow.webContents.on('dom-ready', mainWindowReady);
 });
 
 app.on('window-all-closed', () => {
@@ -163,4 +158,141 @@ function attachTrayListeners() {
 			app.mainWindow.show();
 		}
 	});
+}
+
+function updateAuthStatus(authStatus) {
+	authStatus
+		? setWindowTitle(app.mainWindow, `Авторизован ${getTime()}`)
+		: setWindowTitle(app.mainWindow, `НЕ АВТОРИЗОВАН !!! ${getTime()}`);
+}
+
+function setWindowTitle(win, title) {
+	if (win) {
+		win.webContents.send('changeTitle', title);
+	}
+}
+
+function checkUnreadMsg(count) {
+	if (!count) {
+		return false;
+	}
+	const { newMessageSoundFilePath } = global.app.newMessageSoundFilePath;
+	sound.play(newMessageSoundFilePath).then((response) => console.log('newMessageSound done'));
+	notifier.notify({
+		title: `НОВЫЕ СООБЩЕНИЯ`,
+		message: `${parseInt(count, 10)}`,
+	});
+	return true;
+}
+
+function updateJobList(jobList) {
+	let isListChanged = 0;
+	const { isFirstRun } = store.state;
+	const newJobs = [];
+	const { jobList: storeJobList } = store.state;
+
+	jobList.forEach((newElement) => {
+		const isNew = !_.some(
+			storeJobList,
+			(element) =>
+				element.priceLimit === newElement.priceLimit &&
+				element.id === newElement.id &&
+				element.description === newElement.description,
+		);
+		const dateDiffH = (new Date() - new Date(newElement.date_create)) / 1000 / 60 / 60;
+		if (isNew) {
+			isListChanged++;
+			if (!newElement.url) {
+				newElement.url = `/projects/${newElement.id}`;
+			}
+			newJobs.push(newElement);
+			// store.setState({ jobList: [newElement, ...store.jobList] });
+
+			if (dateDiffH < 1 && !isFirstRun) {
+				notifier.notify({
+					title: `${newElement.name} - ${newElement.priceLimit}`,
+					message: `${newElement.description}                     #${newElement.id}`,
+				});
+			}
+		}
+	});
+
+	if (isListChanged) {
+		const { notifySoundFilePath } = global.app;
+		store.setJobList([...newJobs, ...storeJobList]);
+
+		// console.log('notifySoundFilePath', notifySoundFilePath);
+
+		// if (!isFirstRun) {
+		sound.play(notifySoundFilePath);
+		// }
+		// console.log(jobList);
+
+		app.mainWindow.webContents.send('showList', store.state.jobList);
+	}
+
+	if (isFirstRun) {
+		store.state.isFirstRun = false;
+	}
+}
+
+function fetchAndProcessPage() {
+	if (global.app.fileConfig) {
+		// const {url, cookie} = global.app.fileConfig;
+		storeObserver
+			.getPage()
+			.then((data) => {
+				console.log('fetchAndProcessPage data', data);
+
+				if (!store.error) {
+					console.log('fetchAndProcessPage store', store);
+
+					const parsedData = parseHTML(store.state.html);
+					if (parsedData) {
+						// store.setState({ jobList: parsedData.jobList });
+						updateAuthStatus(parsedData.auth);
+						checkUnreadMsg(parsedData.unreadMessageCount);
+						updateJobList(parsedData.jobList);
+					}
+				}
+			})
+			.catch((err) => {
+				console.log(err);
+			});
+	}
+}
+
+function mainWindowReady() {
+	console.log('mainWindowReady');
+
+	storeObserver.listen((store) => {
+		const { isLoading, error, requests } = store.state;
+		console.log('store listener', isLoading, ` requests ${requests}`);
+
+		if (app.mainWindow) {
+			if (error) {
+				app.mainWindow.webContents.send('getPageRequestError', error);
+			}
+			if (isLoading) {
+				app.mainWindow.webContents.send('getPageRequestLoading');
+			} else {
+				app.mainWindow.webContents.send('getPageRequestLoaded');
+			}
+		}
+	});
+
+	if (global.app.fileConfig) {
+		fetchAndProcessPage();
+	} else {
+		const interval = setInterval(() => {
+			if (global.app.fileConfig) {
+				clearInterval(interval);
+				fetchAndProcessPage();
+			}
+		}, 100);
+	}
+
+	setInterval(() => {
+		fetchAndProcessPage();
+	}, REFRESH_INTERVAL);
 }

@@ -25,13 +25,11 @@ const MAX_ELEMENTS = 100;
 let jobList = [];
 let isFirstRun = true;
 
-const parseHTML = async (win) => {
+const parseHTML = (win) => {
 	if (!app.fileConfig) {
-		console.log(app);
-
+		// console.log(app);
 		console.log('config is not loaded');
-
-		return;
+		return null;
 	}
 	// .dropdownbox__username
 	const { nickname } = app.fileConfig;
@@ -40,81 +38,119 @@ const parseHTML = async (win) => {
 	const notifySoundFilePath = app.notifySoundFilePath;
 
 	// sound.play(`${notifySoundFilePath}`);
+	// console.log('app.store.state.html', app.store.state.html);
 
-	try {
-		const response = await axios.get(url, {
-			headers: {
-				Cookie: `slrememberme=${app.fileConfig.cookie}`,
-			},
-		});
+	const html = app.store.state.html.data;
+	const result = {
+		auth: null,
+		unreadMessageCount: 0,
+		jobList: [],
+	};
 
-		const html = response.data;
-		if (nickname.trim() && html.indexOf(nickname) >= 0) {
-			win.webContents.send('changeTitle', 'Авторизован');
-		} else {
-			win.webContents.send('changeTitle', 'НЕ АВТОРИЗОВАН !!!');
-		}
-		checkUnreadMessagesCounter(html);
-		const currentJobs = getJobs(html);
-
-		let isListChanged = 0;
-
-		currentJobs.forEach((newElement) => {
-			const isNew = !_.some(
-				jobList,
-				(element) =>
-					element.priceLimit === newElement.priceLimit &&
-					element.id === newElement.id &&
-					element.description === newElement.description,
-			);
-
-			const dateDiffH = (new Date() - new Date(newElement.date_create)) / 1000 / 60 / 60;
-
-			if (isNew && (dateDiffH < 1 || isFirstRun)) {
-				isListChanged++;
-				if (!newElement.url) {
-					newElement.url = `/projects/${newElement.id}`;
-				}
-
-				jobList.unshift(newElement);
-
-				if (!isFirstRun) {
-					notifier.notify({
-						title: `${newElement.name} - ${newElement.priceLimit}`,
-						message: `${newElement.description}                     #${newElement.id}`,
-					});
-				}
-			}
-		});
-
-		/* -------------------------------- SHOW LOG -------------------------------- */
-		// console.log(
-		// 	`currentJobs.length: ${
-		// 		currentJobs.length
-		// 	}, new elements: ${isListChanged} ${getTime()}`,
-		// );
-		/* -------------------------------------------------------------------------- */
-
-		if (isListChanged) {
-			jobList.sort(compareByDateCreate);
-
-			if (jobList.length > MAX_ELEMENTS) {
-				jobList = jobList.slice(0, 50);
-			}
-
-			// if (!isFirstRun) {
-			sound.play(`${notifySoundFilePath}`);
-			// }
-			console.log(jobList);
-
-			win.webContents.send('showList', jobList);
-		}
-	} catch (error) {
-		console.error('Ошибка:', error.message);
+	if (nickname.trim() && html.indexOf(nickname) >= 0) {
+		// win.webContents.send('changeTitle', 'Авторизован');
+		result.auth = true;
+	} else {
+		// win.webContents.send('changeTitle', 'НЕ АВТОРИЗОВАН !!!');
+		result.auth = false;
 	}
 
-	isFirstRun = false;
+	result.unreadMessageCount = checkUnreadMessagesCounter(html);
+	result.jobList = getJobs(html);
+
+	return result;
 };
+
+// const parseHTML = async (win) => {
+// 	if (!app.fileConfig) {
+// 		console.log(app);
+
+// 		console.log('config is not loaded');
+
+// 		return;
+// 	}
+// 	// .dropdownbox__username
+// 	const { nickname } = app.fileConfig;
+// 	const url = app.fileConfig.filterUrl; // 'https://kwork.ru/projects?view=0&kworks-filters%5B%5D=0&kworks-filters%5B%5D=1&a=1';
+
+// 	const notifySoundFilePath = app.notifySoundFilePath;
+
+// 	// sound.play(`${notifySoundFilePath}`);
+
+// 	try {
+// 		const response = await axios.get(url, {
+// 			headers: {
+// 				Cookie: `slrememberme=${app.fileConfig.cookie}`,
+// 			},
+// 		});
+
+// 		const html = response.data;
+// 		if (nickname.trim() && html.indexOf(nickname) >= 0) {
+// 			win.webContents.send('changeTitle', 'Авторизован');
+// 		} else {
+// 			win.webContents.send('changeTitle', 'НЕ АВТОРИЗОВАН !!!');
+// 		}
+// 		checkUnreadMessagesCounter(html);
+// 		const currentJobs = getJobs(html);
+
+// 		let isListChanged = 0;
+
+// 		currentJobs.forEach((newElement) => {
+// 			const isNew = !_.some(
+// 				jobList,
+// 				(element) =>
+// 					element.priceLimit === newElement.priceLimit &&
+// 					element.id === newElement.id &&
+// 					element.description === newElement.description,
+// 			);
+
+// 			const dateDiffH = (new Date() - new Date(newElement.date_create)) / 1000 / 60 / 60;
+
+// 			if (isNew && (dateDiffH < 1 || isFirstRun)) {
+// 				isListChanged++;
+// 				if (!newElement.url) {
+// 					newElement.url = `/projects/${newElement.id}`;
+// 				}
+
+// 				jobList.unshift(newElement);
+
+// 				if (!isFirstRun) {
+// 					notifier.notify({
+// 						title: `${newElement.name} - ${newElement.priceLimit}`,
+// 						message: `${newElement.description}                     #${newElement.id}`,
+// 					});
+// 				}
+// 			}
+// 		});
+
+// 		/* -------------------------------- SHOW LOG -------------------------------- */
+// 		// console.log(
+// 		// 	`currentJobs.length: ${
+// 		// 		currentJobs.length
+// 		// 	}, new elements: ${isListChanged} ${getTime()}`,
+// 		// );
+// 		/* -------------------------------------------------------------------------- */
+
+// 		if (isListChanged) {
+// 			jobList.sort(compareByDateCreate);
+
+// 			if (jobList.length > MAX_ELEMENTS) {
+// 				jobList = jobList.slice(0, 50);
+// 			}
+
+// 			// if (!isFirstRun) {
+// 			sound.play(`${notifySoundFilePath}`);
+// 			// }
+// 			console.log(jobList);
+
+// 			win.webContents.send('showList', jobList);
+// 		}
+// 	} catch (error) {
+// 		console.error('Ошибка:', error.message);
+// 	}
+
+// 	isFirstRun = false;
+// };
 
 notifier.on('click', (notifierObject, options, event) => {
 	const message = options.m;
@@ -142,7 +178,7 @@ function getJobs(html) {
 	tmpStr = tmpStr.replace(/(wants_\d+_data.+?].*}).*/g, '$1');
 	tmpStr = tmpStr.replace(/\\"/g, '\\"');
 	tmpStr = tmpStr.replace(/\}\}\]\}\}.*/g, '}}]}}');
-	console.log(tmpStr);
+	// console.log(tmpStr);
 
 	try {
 		const jobs = JSON.parse(tmpStr);
@@ -155,15 +191,6 @@ function getJobs(html) {
 	}
 
 	// const reversedJobsArray = jobsArray.reverse();
-}
-
-function getTime() {
-	const t = new Date();
-	const h = `0${t.getHours()}`.slice(-2);
-	const m = `0${t.getMinutes()}`.slice(-2);
-	const s = `0${t.getSeconds()}`.slice(-2);
-
-	return `${h}:${m}:${s}`;
 }
 
 function compareByDateCreate(a, b) {
@@ -184,12 +211,14 @@ function checkUnreadMessagesCounter(html) {
 	const k = l ? msgsCounterElement.eq(0).text() : 0;
 
 	if (k) {
-		sound.play(`${newMessageSoundFilePath}`).then((response) => console.log('done'));
-		notifier.notify({
-			title: `НОВЫЕ СООБЩЕНИЯ`,
-			message: `${parseInt(k, 10)}`,
-		});
+		// sound.play(`${newMessageSoundFilePath}`).then((response) => console.log('done'));
+		// notifier.notify({
+		// 	title: `НОВЫЕ СООБЩЕНИЯ`,
+		// 	message: `${parseInt(k, 10)}`,
+		// });
 	}
+
+	return k;
 }
 
 module.exports = {

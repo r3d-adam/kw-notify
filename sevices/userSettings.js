@@ -1,4 +1,4 @@
-const { saveConfig } = require('./config.js');
+const { saveConfig } = require('../sevices/config.js');
 const prompt = require('custom-electron-prompt');
 
 const setCookieValuePrompt = (cb) => {

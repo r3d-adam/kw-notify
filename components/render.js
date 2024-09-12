@@ -10,7 +10,8 @@ const listItemTemplatePath = path.join(__dirname, './html/listItem.html');
 const listItemTemplate = fs.readFileSync(listItemTemplatePath, 'utf8');
 const projectLinkStart = 'https://kwork.ru/projects/';
 
-const { formatPrice } = window.utils;
+const { formatPrice, getTime } = window.utils;
+let loadingBarSelector = '.load';
 
 // ipcRenderer.invoke('getPlugins', '').then((result) => {
 // 	// ...
@@ -24,6 +25,21 @@ ipcRenderer.on('sendSettings', (event, list) => {
 
 ipcRenderer.on('changeTitle', (event, newTitle) => {
 	document.title = newTitle;
+});
+
+ipcRenderer.on('getPageRequestError', (event, error) => {
+	console.log('render getPageRequestError');
+	document.title = error + ` ${getTime()}`;
+});
+
+ipcRenderer.on('getPageRequestLoading', (event) => {
+	console.log('render getPageRequestLoading');
+	document.querySelector(loadingBarSelector).style.display = '';
+});
+
+ipcRenderer.on('getPageRequestLoaded', (event, newTitle) => {
+	console.log('render getPageRequestLoaded');
+	document.querySelector(loadingBarSelector).style.display = 'none';
 });
 
 // ipcRenderer.on('showList', (win, jobList) => {
