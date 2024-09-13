@@ -18,6 +18,18 @@ const compareByDateCreate = (a, b) => {
 	return 0;
 };
 
+const compareByDate =
+	(datePropName = 'date_create') =>
+	(a, b) => {
+		if (a[datePropName] > b[datePropName]) {
+			return -1;
+		}
+		if (a[datePropName] < b[datePropName]) {
+			return 1;
+		}
+		return 0;
+	};
+
 function getTime() {
 	const t = new Date();
 	const h = `0${t.getHours()}`.slice(-2);
@@ -31,4 +43,5 @@ module.exports = {
 	formatPrice,
 	compareByDateCreate,
 	getTime,
+	compareByDate,
 };

@@ -1,4 +1,4 @@
-const { compareByDateCreate } = require('../utils/utils');
+const { compareByDateCreate, compareByDate } = require('../utils/utils');
 const { getPageRequestWithCookie } = require('./request');
 const { StoreObserver } = require('./store-observer');
 
@@ -27,7 +27,7 @@ const store = {
 	setJobList(jobList) {
 		this.state = {
 			...this.state,
-			jobList: [...jobList].sort(compareByDateCreate).slice(0, MAX_ELEMENTS),
+			jobList: [...jobList].sort(compareByDate('date_active')).slice(0, MAX_ELEMENTS),
 		};
 	},
 	setIsLoading(isLoading) {

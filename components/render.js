@@ -53,7 +53,7 @@ ipcRenderer.on('showList', async (event, list) => {
 	if (list && list.length) {
 		const listHTML = list
 			.map((item, i) => {
-				const time = item?.date_create.replace(/\d+-\d+-\d+ /, '') || 0;
+				const time = item?.date_active.replace(/\d+-\d+-\d+ /, '') || 0;
 				let { description = '' } = item;
 				let urls = [];
 

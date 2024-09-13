@@ -190,6 +190,7 @@ function updateJobList(jobList) {
 	const { isFirstRun } = store.state;
 	const newJobs = [];
 	const { jobList: storeJobList } = store.state;
+	const shouldPlaySound = false;
 
 	jobList.forEach((newElement) => {
 		const isNew = !_.some(
@@ -199,7 +200,7 @@ function updateJobList(jobList) {
 				element.id === newElement.id &&
 				element.description === newElement.description,
 		);
-		const dateDiffH = (new Date() - new Date(newElement.date_create)) / 1000 / 60 / 60;
+		const dateDiffH = (new Date() - new Date(newElement.date_active)) / 1000 / 60 / 60;
 		if (isNew) {
 			isListChanged++;
 			if (!newElement.url) {
@@ -209,6 +210,7 @@ function updateJobList(jobList) {
 			// store.setState({ jobList: [newElement, ...store.jobList] });
 
 			if (dateDiffH < 1 && !isFirstRun) {
+				shouldPlaySound = true;
 				notifier.notify({
 					title: `${newElement.name} - ${newElement.priceLimit}`,
 					message: `${newElement.description}                     #${newElement.id}`,
@@ -220,11 +222,14 @@ function updateJobList(jobList) {
 	if (isListChanged) {
 		const { notifySoundFilePath } = global.app;
 		store.setJobList([...newJobs, ...storeJobList]);
+		console.log(store.state.jobList);
 
 		// console.log('notifySoundFilePath', notifySoundFilePath);
 
 		// if (!isFirstRun) {
-		sound.play(notifySoundFilePath);
+		if (shouldPlaySound) {
+			sound.play(notifySoundFilePath);
+		}
 		// }
 		// console.log(jobList);
 
@@ -245,7 +250,7 @@ function fetchAndProcessPage() {
 				console.log('fetchAndProcessPage data', data);
 
 				if (!store.error) {
-					console.log('fetchAndProcessPage store', store);
+					// console.log('fetchAndProcessPage store', store);
 
 					const parsedData = parseHTML(store.state.html);
 					if (parsedData) {

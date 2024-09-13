@@ -193,16 +193,6 @@ function getJobs(html) {
 	// const reversedJobsArray = jobsArray.reverse();
 }
 
-function compareByDateCreate(a, b) {
-	if (a.date_create > b.date_create) {
-		return -1;
-	}
-	if (a.date_create < b.date_create) {
-		return 1;
-	}
-	return 0;
-}
-
 function checkUnreadMessagesCounter(html) {
 	const newMessageSoundFilePath = app.newMessageSoundFilePath;
 	const $ = cheerio.load(html);
