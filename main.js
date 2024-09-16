@@ -190,7 +190,7 @@ function updateJobList(jobList) {
 	const { isFirstRun } = store.state;
 	const newJobs = [];
 	const { jobList: storeJobList } = store.state;
-	const shouldPlaySound = false;
+	let shouldPlaySound = false;
 
 	jobList.forEach((newElement) => {
 		const isNew = !_.some(
