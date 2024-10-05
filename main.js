@@ -73,21 +73,21 @@ app.whenReady().then(() => {
 		{
 			label: 'Set Username',
 			click: () => {
-				setUsernamePrompt(() => parseHTML(app.mainWindow));
+				setUsernamePrompt(() => fetchAndProcessPage());
 				saveConfig(global.app.fileConfig);
 			},
 		},
 		{
 			label: 'Set URL',
 			click: () => {
-				setFilterUrlPrompt(() => parseHTML(app.mainWindow));
+				setFilterUrlPrompt(() => fetchAndProcessPage());
 				saveConfig(global.app.fileConfig);
 			},
 		},
 		{
 			label: 'Set Cookie',
 			click: () => {
-				setCookieValuePrompt(() => parseHTML(app.mainWindow));
+				setCookieValuePrompt(() => fetchAndProcessPage());
 				saveConfig(global.app.fileConfig);
 			},
 		},
