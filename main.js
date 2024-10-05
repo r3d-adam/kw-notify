@@ -22,7 +22,7 @@ const fs = require('fs');
 
 const open = require('open');
 const { store, storeObserver } = require('./sevices/store.js');
-const { compareByDateCreate, getTime } = require('./utils/utils.js');
+const { compareByDateCreate, getTime, formatPrice } = require('./utils/utils.js');
 
 // const extractUrls = require('get-urls');
 
@@ -51,6 +51,8 @@ global.app = {
 	store,
 	storeObserver,
 	fileConfig: null,
+	newJobNotifyDisabled: false,
+	newMessageNotifyDisabled: false,
 };
 
 const init = () => {
@@ -89,7 +91,24 @@ app.whenReady().then(() => {
 				saveConfig(global.app.fileConfig);
 			},
 		},
-
+		{
+			label: 'Hide New Jobs Notify',
+			type: 'checkbox',
+			checked: false,
+			click: (item) => {
+				// console.dir(item.checked);
+				global.app.newJobNotifyDisabled = item.checked;
+			},
+		},
+		{
+			label: 'Hide New Messages',
+			type: 'checkbox',
+			checked: false,
+			click: (item) => {
+				// console.dir(item.checked);
+				global.app.newMessageNotifyDisabled = item.checked;
+			},
+		},
 		{
 			label: 'Quit',
 			click() {
@@ -177,11 +196,13 @@ function checkUnreadMsg(count) {
 		return false;
 	}
 	const { newMessageSoundFilePath } = global.app.newMessageSoundFilePath;
-	sound.play(newMessageSoundFilePath).then((response) => console.log('newMessageSound done'));
-	notifier.notify({
-		title: `НОВЫЕ СООБЩЕНИЯ`,
-		message: `${parseInt(count, 10)}`,
-	});
+	if (!global.app.newMessageNotifyDisabled) {
+		sound.play(newMessageSoundFilePath).then((response) => console.log('newMessageSound done'));
+		notifier.notify({
+			title: `НОВЫЕ СООБЩЕНИЯ`,
+			message: `${parseInt(count, 10)}`,
+		});
+	}
 	return true;
 }
 
@@ -209,10 +230,12 @@ function updateJobList(jobList) {
 			newJobs.push(newElement);
 			// store.setState({ jobList: [newElement, ...store.jobList] });
 
-			if (dateDiffH < 1 && !isFirstRun) {
+			if (dateDiffH < 1 && !isFirstRun && !global.app.newJobNotifyDisabled) {
 				shouldPlaySound = true;
 				notifier.notify({
-					title: `${newElement.name} - ${newElement.priceLimit}`,
+					title: `${newElement.name.slice(0, 40)} - ${formatPrice(
+						newElement.priceLimit,
+					)}`,
 					message: `${newElement.description}                     #${newElement.id}`,
 				});
 			}

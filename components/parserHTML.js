@@ -199,9 +199,9 @@ function checkUnreadMessagesCounter(html) {
 	const msgsCounterElement = $('.message-counter');
 	const l = msgsCounterElement.length;
 	let k = l ? +msgsCounterElement.eq(0).text() : 0;
-	if (msgsCounterElement.eq(1)) {
-		k += +msgsCounterElement.eq(1).text();
-	}
+	// if (msgsCounterElement.eq(1)) {
+	// 	k += +msgsCounterElement.eq(1).text();
+	// }
 	if (k) {
 		// sound.play(`${newMessageSoundFilePath}`).then((response) => console.log('done'));
 		// notifier.notify({
