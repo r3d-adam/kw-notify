@@ -5,6 +5,7 @@ const formatPrice = (price, postfix = ' ₽') => {
 	let r = price.replace(/\.00$/g, '');
 	r = [...r].reverse().map((char, i) => (i % 3 === 0 ? `${char} ` : char));
 	r = r.reverse().join('').trim() + postfix;
+	r = r.replaceAll(/\s/g, '\u00a0');
 	return r;
 };
 

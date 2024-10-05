@@ -230,6 +230,7 @@ function updateJobList(jobList) {
 			newJobs.push(newElement);
 			// store.setState({ jobList: [newElement, ...store.jobList] });
 
+			// if (dateDiffH < 1  && !global.app.newJobNotifyDisabled) {
 			if (dateDiffH < 1 && !isFirstRun && !global.app.newJobNotifyDisabled) {
 				shouldPlaySound = true;
 				notifier.notify({
