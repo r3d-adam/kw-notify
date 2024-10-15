@@ -25,6 +25,26 @@ const getPageRequestWithCookie = async (url, cookie) => {
 	}
 };
 
+const requestWithCookie = async (url, cookie, options = { method: 'get', headers: {} }) => {
+	let response;
+	try {
+		response = await axios({
+			...options,
+			method: options.method,
+			url,
+			headers: {
+				...options.headers,
+				Cookie: `slrememberme=${cookie}`,
+			},
+		});
+
+		return checkResponse(response);
+	} catch (err) {
+		return Promise.reject(err.message || err);
+	}
+};
+
 module.exports = {
 	getPageRequestWithCookie,
+	requestWithCookie,
 };

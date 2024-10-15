@@ -280,7 +280,7 @@ function fetchAndProcessPage() {
 					if (parsedData) {
 						// store.setState({ jobList: parsedData.jobList });
 						updateAuthStatus(parsedData.auth);
-						checkUnreadMsg(parsedData.unreadMessageCount);
+						// checkUnreadMsg(parsedData.unreadMessageCount);
 						updateJobList(parsedData.jobList);
 					}
 				}
@@ -288,6 +288,34 @@ function fetchAndProcessPage() {
 			.catch((err) => {
 				console.log(err);
 			});
+
+		if (!global.app.newMessageNotifyDisabled) {
+			storeObserver.getMessages().then(() => {
+				const unread = store.state.messages.filter((message) => message.unread_count > 0);
+
+				if (unread.length > 0 && !global.app.newMessageNotifyDisabled) {
+					const { newMessageSoundFilePath } = global.app.newMessageSoundFilePath;
+
+					sound
+						.play(newMessageSoundFilePath)
+						.then(() => console.log('newMessageSound done'));
+					notifier.notify({
+						title: `НОВЫЕ СООБЩЕНИЯ`,
+						message: unread.length,
+					});
+					for (const message of store.state.messages) {
+						const lastMessage = message?.lastMessage?.message;
+						const { username } = message;
+						if (lastMessage) {
+							notifier.notify({
+								title: username,
+								message: lastMessage,
+							});
+						}
+					}
+				}
+			});
+		}
 	}
 }
 

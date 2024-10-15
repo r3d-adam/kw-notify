@@ -44,6 +44,20 @@ class StoreObserver {
 		}
 		return Promise.reject('StoreObserver getPage error');
 	}
+	async getMessages() {
+		if ('getPage' in this.store && typeof this.store.getPage === 'function') {
+			try {
+				const result = await this.store.getMessages();
+				console.log('StoreObserver getMessages');
+
+				this.listeners.forEach((listener) => listener(this.store));
+				return result;
+			} catch (error) {
+				return Promise.reject(error instanceof Error ? error.message : error);
+			}
+		}
+		return Promise.reject('StoreObserver getMessages error');
+	}
 }
 
 module.exports = { StoreObserver };

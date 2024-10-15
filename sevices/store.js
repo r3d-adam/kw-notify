@@ -1,5 +1,5 @@
 const { compareByDateCreate, compareByDate } = require('../utils/utils');
-const { getPageRequestWithCookie } = require('./request');
+const { getPageRequestWithCookie, requestWithCookie } = require('./request');
 const { StoreObserver } = require('./store-observer');
 
 const MAX_ELEMENTS = 100;
@@ -10,6 +10,7 @@ const initialState = {
 	html: null,
 	isFirstRun: true,
 	jobList: [],
+	messages: [],
 	isLoading: false,
 	error: null,
 	requests: 0,
@@ -30,6 +31,12 @@ const store = {
 			jobList: [...jobList].sort(compareByDate('date_active')).slice(0, MAX_ELEMENTS),
 		};
 	},
+	setMessages(messages) {
+		this.state = {
+			...this.state,
+			messages,
+		};
+	},
 	setIsLoading(isLoading) {
 		this.state.isLoading = isLoading;
 	},
@@ -37,6 +44,7 @@ const store = {
 		this.state.error = error;
 	},
 	getPage: getPage,
+	getMessages: getMessages,
 	// const { filterUrl, cookie } = global.app.fileConfig;
 	// this.setIsLoading(true);
 	// this.setState({ requests: ++this.state.requests });
@@ -73,6 +81,35 @@ async function getPage() {
 			console.log('store getPage error', error);
 			storeObserver.setState({ ...initialState, error });
 			return Promise.reject(error);
+		});
+}
+
+function getMessages() {
+	const { cookie } = global.app.fileConfig;
+	storeObserver.setIsLoading(true);
+	storeObserver.setState({ requests: ++store.state.requests });
+	console.log('setIsLoading(true)');
+
+	const config = {
+		method: 'post',
+		data: '',
+		headers: {
+			'Content-Type': 'multipart/form-data',
+		},
+	};
+
+	requestWithCookie('https://kwork.ru/getdialogs', cookie, config)
+		.then((data) => {
+			storeObserver.setState({
+				messages: data.data.data.rows,
+				isLoading: false,
+				error: null,
+			});
+			return data;
+		})
+		.catch((error) => {
+			storeObserver.setState({ ...initialState, error });
+			return error;
 		});
 }
 
