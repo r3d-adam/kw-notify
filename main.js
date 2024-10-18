@@ -294,7 +294,7 @@ function fetchAndProcessPage() {
 				const unread = store.state.messages.filter((message) => message.unread_count > 0);
 
 				if (unread.length > 0 && !global.app.newMessageNotifyDisabled) {
-					const { newMessageSoundFilePath } = global.app.newMessageSoundFilePath;
+					const { newMessageSoundFilePath } = global.app;
 
 					sound
 						.play(newMessageSoundFilePath)
@@ -302,14 +302,16 @@ function fetchAndProcessPage() {
 					notifier.notify({
 						title: `НОВЫЕ СООБЩЕНИЯ`,
 						message: unread.length,
+						timeout: 3,
 					});
-					for (const message of store.state.messages) {
+					for (const message of unread) {
 						const lastMessage = message?.lastMessage?.message;
 						const { username } = message;
 						if (lastMessage) {
 							notifier.notify({
 								title: username,
 								message: lastMessage,
+								timeout: 3,
 							});
 						}
 					}
