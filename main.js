@@ -290,10 +290,16 @@ function fetchAndProcessPage() {
 			});
 
 		if (!global.app.newMessageNotifyDisabled) {
-			storeObserver.getMessages().then(() => {
-				const unread = store.state.messages.filter((message) => message.unread_count > 0);
+			const getMessages = storeObserver.getMessages();
 
-				if (unread.length > 0 && !global.app.newMessageNotifyDisabled) {
+			const getActiveOrdersMessages = storeObserver.getActiveOrdersMessages();
+
+			Promise.all([getMessages, getActiveOrdersMessages]).then((values) => {
+				const unread = store.state.messages.filter((message) => message.unread_count > 0);
+				const activeOrdersMessageCount = store.state.activeOrdersNewMessageCount;
+				const totalNewMessageCount = unread.length + activeOrdersMessageCount;
+
+				if (totalNewMessageCount > 0 && !global.app.newMessageNotifyDisabled) {
 					const { newMessageSoundFilePath } = global.app;
 
 					sound
@@ -301,8 +307,8 @@ function fetchAndProcessPage() {
 						.then(() => console.log('newMessageSound done'));
 					notifier.notify({
 						title: `НОВЫЕ СООБЩЕНИЯ`,
-						message: unread.length,
-						timeout: 3,
+						message: `${totalNewMessageCount}`,
+						// timeout: 3,
 					});
 					for (const message of unread) {
 						const lastMessage = message?.lastMessage?.message;

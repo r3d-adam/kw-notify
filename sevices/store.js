@@ -2,6 +2,8 @@ const { compareByDateCreate, compareByDate } = require('../utils/utils');
 const { getPageRequestWithCookie, requestWithCookie } = require('./request');
 const { StoreObserver } = require('./store-observer');
 
+const BASE_URL = 'https://kwork.ru';
+
 const MAX_ELEMENTS = 100;
 let jobList = [];
 let isFirstRun = true;
@@ -11,6 +13,7 @@ const initialState = {
 	isFirstRun: true,
 	jobList: [],
 	messages: [],
+	activeOrdersNewMessageCount: 0,
 	isLoading: false,
 	error: null,
 	requests: 0,
@@ -45,6 +48,7 @@ const store = {
 	},
 	getPage: getPage,
 	getMessages: getMessages,
+	getActiveOrdersMessages: getActiveOrdersMessages,
 	// const { filterUrl, cookie } = global.app.fileConfig;
 	// this.setIsLoading(true);
 	// this.setState({ requests: ++this.state.requests });
@@ -98,7 +102,7 @@ function getMessages() {
 		},
 	};
 
-	requestWithCookie('https://kwork.ru/getdialogs', cookie, config)
+	return requestWithCookie(`${BASE_URL}/getdialogs`, cookie, config)
 		.then((data) => {
 			storeObserver.setState({
 				messages: data.data.data.rows,
@@ -106,6 +110,34 @@ function getMessages() {
 				error: null,
 			});
 			return data;
+		})
+		.catch((error) => {
+			storeObserver.setState({ ...initialState, error });
+			return error;
+		});
+}
+
+function getActiveOrdersMessages() {
+	const { cookie } = global.app.fileConfig;
+	storeObserver.setIsLoading(true);
+	storeObserver.setState({ requests: ++store.state.requests });
+
+	const config = {
+		method: 'get',
+	};
+
+	return requestWithCookie(`${BASE_URL}/get_manage_orders?s=active`, cookie, config)
+		.then((data) => {
+			const newMessageCount = data?.data?.data?.orderListData?.reduce((acc, element) => {
+				return (acc += element?.messages);
+			}, 0);
+
+			storeObserver.setState({
+				activeOrdersNewMessageCount: newMessageCount || 0,
+				isLoading: false,
+				error: null,
+			});
+			return newMessageCount;
 		})
 		.catch((error) => {
 			storeObserver.setState({ ...initialState, error });
