@@ -17,12 +17,20 @@ const {
 	setCookieValuePrompt,
 } = require('./sevices/userSettings.js');
 const sound = require('sound-play');
+// const sound1 = require('play-sound')((opts = { players: ['powershell'], player: 'powershell' }));
+const audioPlay = require('audio-play');
+const audioLoader = require('audio-loader');
+const { Howl } = require('howler');
 
 const fs = require('fs');
 
 const open = require('open');
 const { store, storeObserver } = require('./sevices/store.js');
 const { compareByDateCreate, getTime, formatPrice } = require('./utils/utils.js');
+const Overlay = require('./controllers/overlay');
+const EventEmitter = require('events');
+const logger = require('./utils/logger.js');
+const projectLinkStart = 'https://kwork.ru/projects/';
 
 // const extractUrls = require('get-urls');
 
@@ -32,13 +40,15 @@ const { compareByDateCreate, getTime, formatPrice } = require('./utils/utils.js'
 */
 const REFRESH_INTERVAL = 60 * 1000;
 
-// console.log(shared);
+// logger.debug(shared);
 
 const plugins = {};
 
 plugins.open = open;
+plugins.logger = logger;
 
 let tray = null;
+const eventEmitter = new EventEmitter();
 
 global.app = {
 	plugins,
@@ -53,14 +63,25 @@ global.app = {
 	fileConfig: null,
 	newJobNotifyDisabled: false,
 	newMessageNotifyDisabled: false,
+	mute: false,
 };
 
 const init = () => {
 	global.app.fileConfig = loadConfig();
 };
 
-app.whenReady().then(() => {
+app.disableHardwareAcceleration();
+
+app.whenReady().then(async () => {
 	init();
+
+	try {
+		if (!global.app.mute) {
+			sound.play(global.app.notifySoundFilePath);
+		}
+	} catch (error) {
+		logger.debug(error);
+	}
 
 	tray = new Tray(path.join(__dirname, 'favicon.png'));
 	const contextMenu = Menu.buildFromTemplate([
@@ -110,6 +131,15 @@ app.whenReady().then(() => {
 			},
 		},
 		{
+			label: 'Mute',
+			type: 'checkbox',
+			checked: false,
+			click: (item) => {
+				// console.dir(item.checked);
+				global.app.mute = item.checked;
+			},
+		},
+		{
 			label: 'Quit',
 			click() {
 				app.isQuiting = true;
@@ -118,7 +148,7 @@ app.whenReady().then(() => {
 		},
 	]);
 
-	// console.log(path.join(__dirname, 'preload.js'));
+	// logger.debug(path.join(__dirname, 'preload.js'));
 	app.mainWindow = new BrowserWindow({
 		width: 600,
 		height: 900,
@@ -133,7 +163,6 @@ app.whenReady().then(() => {
 
 	attachWindowListeners(app.mainWindow);
 
-	app.mainWindow.loadURL(`file://${__dirname}/index.html`);
 	app.mainWindow.ipcMain = ipcMain;
 
 	tray.setToolTip('kwork notify');
@@ -141,6 +170,9 @@ app.whenReady().then(() => {
 	attachTrayListeners();
 
 	app.mainWindow.webContents.on('dom-ready', mainWindowReady);
+	await app.mainWindow.loadURL(`file://${__dirname}/index.html`);
+
+	await Overlay(eventEmitter);
 });
 
 app.on('window-all-closed', () => {
@@ -196,9 +228,13 @@ function checkUnreadMsg(count) {
 		return false;
 	}
 	const { newMessageSoundFilePath } = global.app.newMessageSoundFilePath;
-	if (!global.app.newMessageNotifyDisabled) {
-		sound.play(newMessageSoundFilePath).then((response) => console.log('newMessageSound done'));
-		notifier.notify({
+	if (!global.app.newMessageNotifyDisabled && !global.app.mute) {
+		sound
+			.play(newMessageSoundFilePath)
+			.then((response) => logger.debug('newMessageSound done'))
+			.catch((e) => logger.debug(e));
+
+		eventEmitter.emit('app-notify-success', {
 			title: `НОВЫЕ СООБЩЕНИЯ`,
 			message: `${parseInt(count, 10)}`,
 		});
@@ -212,6 +248,7 @@ function updateJobList(jobList) {
 	const newJobs = [];
 	const { jobList: storeJobList } = store.state;
 	let shouldPlaySound = false;
+	let i = 0;
 
 	jobList.forEach((newElement) => {
 		const isNew = !_.some(
@@ -233,12 +270,18 @@ function updateJobList(jobList) {
 			// if (dateDiffH < 1  && !global.app.newJobNotifyDisabled) {
 			if (dateDiffH < 1 && !isFirstRun && !global.app.newJobNotifyDisabled) {
 				shouldPlaySound = true;
-				notifier.notify({
-					title: `${newElement.name.slice(0, 40)} - ${formatPrice(
-						newElement.priceLimit,
-					)}`,
-					message: `${newElement.description}                     #${newElement.id}`,
-				});
+
+				setTimeout(() => {
+					eventEmitter.emit('app-notify-success', {
+						title: `${newElement.name.slice(0, 40)} - ${formatPrice(
+							newElement.priceLimit,
+						)}`,
+						message: `${newElement.description}`,
+						link: projectLinkStart + newElement.id,
+					});
+				}, i * 5000);
+
+				i++;
 			}
 		}
 	});
@@ -246,16 +289,20 @@ function updateJobList(jobList) {
 	if (isListChanged) {
 		const { notifySoundFilePath } = global.app;
 		store.setJobList([...newJobs, ...storeJobList]);
-		console.log(store.state.jobList);
+		logger.debug(store.state.jobList);
 
-		// console.log('notifySoundFilePath', notifySoundFilePath);
+		// logger.debug('notifySoundFilePath', notifySoundFilePath);
 
 		// if (!isFirstRun) {
-		if (shouldPlaySound) {
-			sound.play(notifySoundFilePath);
+		if (shouldPlaySound && !global.app.mute) {
+			try {
+				sound.play(notifySoundFilePath);
+			} catch (error) {
+				logger.debug(error);
+			}
 		}
 		// }
-		// console.log(jobList);
+		// logger.debug(jobList);
 
 		app.mainWindow.webContents.send('showList', store.state.jobList);
 	}
@@ -271,10 +318,10 @@ function fetchAndProcessPage() {
 		storeObserver
 			.getPage()
 			.then((data) => {
-				console.log('fetchAndProcessPage data', data);
+				logger.debug('fetchAndProcessPage data', data);
 
-				if (!store.error) {
-					// console.log('fetchAndProcessPage store', store);
+				if (!store.state.error) {
+					// logger.debug('fetchAndProcessPage store', store);
 
 					const parsedData = parseHTML(store.state.html);
 					if (parsedData) {
@@ -283,10 +330,12 @@ function fetchAndProcessPage() {
 						// checkUnreadMsg(parsedData.unreadMessageCount);
 						updateJobList(parsedData.jobList);
 					}
+				} else {
+					throw new Error(store.state.error);
 				}
 			})
 			.catch((err) => {
-				console.log(err);
+				logger.debug(err);
 			});
 
 		if (!global.app.newMessageNotifyDisabled) {
@@ -302,22 +351,27 @@ function fetchAndProcessPage() {
 				if (totalNewMessageCount > 0 && !global.app.newMessageNotifyDisabled) {
 					const { newMessageSoundFilePath } = global.app;
 
-					sound
-						.play(newMessageSoundFilePath)
-						.then(() => console.log('newMessageSound done'));
-					notifier.notify({
-						title: `НОВЫЕ СООБЩЕНИЯ`,
-						message: `${totalNewMessageCount}`,
-						// timeout: 3,
-					});
+					try {
+						if (!global.app.mute) {
+							sound
+								.play(newMessageSoundFilePath)
+								.then(() => logger.debug('newMessageSound done'));
+
+							eventEmitter.emit('app-notify-success', {
+								title: `НОВЫЕ СООБЩЕНИЯ`,
+								message: `${totalNewMessageCount}`,
+							});
+						}
+					} catch (error) {
+						logger.debug(error);
+					}
 					for (const message of unread) {
 						const lastMessage = message?.lastMessage?.message;
 						const { username } = message;
 						if (lastMessage) {
-							notifier.notify({
+							eventEmitter.emit('app-notify-success', {
 								title: username,
 								message: lastMessage,
-								timeout: 3,
 							});
 						}
 					}
@@ -328,11 +382,11 @@ function fetchAndProcessPage() {
 }
 
 function mainWindowReady() {
-	console.log('mainWindowReady');
+	logger.debug('mainWindowReady');
 
 	storeObserver.listen((store) => {
 		const { isLoading, error, requests } = store.state;
-		console.log('store listener', isLoading, ` requests ${requests}`);
+		logger.debug('store listener', isLoading, ` requests ${requests}`);
 
 		if (app.mainWindow) {
 			if (error) {

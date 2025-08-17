@@ -1,0 +1,7 @@
+2025-05-06T10:11:48.227Z - ERROR: undefined
+2025-05-06T10:15:32.404Z - ERROR: undefined
+2025-05-06T10:22:00.898Z - ERROR: TypeError: sound1.play(...).then is not a function
+2025-05-06T10:25:01.071Z - ERROR: TypeError: sound1.play(...).then is not a function
+2025-05-06T10:26:37.692Z - ERROR: TypeError: sound1.play(...).then is not a function
+2025-05-06T10:29:58.395Z - ERROR: TypeError: sound1.play(...).then is not a function
+2025-05-06T10:45:19.360Z - ERROR: TypeError: Cannot read properties of undefined (reading 'then')

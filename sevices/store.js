@@ -49,22 +49,6 @@ const store = {
 	getPage: getPage,
 	getMessages: getMessages,
 	getActiveOrdersMessages: getActiveOrdersMessages,
-	// const { filterUrl, cookie } = global.app.fileConfig;
-	// this.setIsLoading(true);
-	// this.setState({ requests: ++this.state.requests });
-	// console.log('setIsLoading(true)');
-
-	// const response = await getPageRequestWithCookie(filterUrl, cookie)
-	// 	.then((html) => {
-	// 		// console.log('store getPage, ', html);
-	// 		this.setState({ html, isLoading: false, error: null });
-	// 		return Promise.resolve(html);
-	// 	})
-	// 	.catch((error) => {
-	// 		console.log('store getPage error', error);
-	// 		this.setState({ ...initialState, error });
-	// 		return Promise.reject(error);
-	// 	});
 };
 
 const storeObserver = new StoreObserver(store);
@@ -75,9 +59,8 @@ async function getPage() {
 	storeObserver.setState({ requests: ++store.state.requests });
 	console.log('setIsLoading(true)');
 
-	const response = await getPageRequestWithCookie(filterUrl, cookie)
+	return getPageRequestWithCookie(filterUrl, cookie)
 		.then((html) => {
-			// console.log('store getPage, ', html);
 			storeObserver.setState({ html, isLoading: false, error: null });
 			return Promise.resolve(html);
 		})

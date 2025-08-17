@@ -104,7 +104,11 @@ const clickHandler = (e) => {
 		}
 
 		const link = e.target.getAttribute('data-link');
-		open(link, options);
+		try {
+			open(link, options);
+		} catch (error) {
+			console.log(error);
+		}
 	}
 };
 
@@ -119,7 +123,11 @@ document.addEventListener('click', (e) => {
 		// console.log('НАЖАЛИ test-link');
 
 		const link = e.target.getAttribute('data-link');
-		open(link);
+		try {
+			open(link);
+		} catch (error) {
+			console.log(error);
+		}
 	}
 });
 

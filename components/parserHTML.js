@@ -8,6 +8,7 @@ const cheerio = require('cheerio');
 // prettier-ignore
 
 const sound = require('sound-play');
+const logger = require('../utils/logger');
 
 // // хак на импорт новых модулей не поддерживающих require, использовать дефолтный экспорт через module.default(); ( т.е. plugins.open.default()  )
 // const plugins = {};
@@ -27,8 +28,8 @@ let isFirstRun = true;
 
 const parseHTML = (win) => {
 	if (!app.fileConfig) {
-		// console.log(app);
-		console.log('config is not loaded');
+		// logger.debug(app);
+		logger.debug('config is not loaded');
 		return null;
 	}
 	// .dropdownbox__username
@@ -38,7 +39,7 @@ const parseHTML = (win) => {
 	const notifySoundFilePath = app.notifySoundFilePath;
 
 	// sound.play(`${notifySoundFilePath}`);
-	// console.log('app.store.state.html', app.store.state.html);
+	// logger.debug('app.store.state.html', app.store.state.html);
 
 	const html = app.store.state.html.data;
 	const result = {
@@ -63,9 +64,9 @@ const parseHTML = (win) => {
 
 // const parseHTML = async (win) => {
 // 	if (!app.fileConfig) {
-// 		console.log(app);
+// 		logger.debug(app);
 
-// 		console.log('config is not loaded');
+// 		logger.debug('config is not loaded');
 
 // 		return;
 // 	}
@@ -124,7 +125,7 @@ const parseHTML = (win) => {
 // 		});
 
 // 		/* -------------------------------- SHOW LOG -------------------------------- */
-// 		// console.log(
+// 		// logger.debug(
 // 		// 	`currentJobs.length: ${
 // 		// 		currentJobs.length
 // 		// 	}, new elements: ${isListChanged} ${getTime()}`,
@@ -141,7 +142,7 @@ const parseHTML = (win) => {
 // 			// if (!isFirstRun) {
 // 			sound.play(`${notifySoundFilePath}`);
 // 			// }
-// 			console.log(jobList);
+// 			logger.debug(jobList);
 
 // 			win.webContents.send('showList', jobList);
 // 		}
@@ -178,7 +179,7 @@ function getJobs(html) {
 	tmpStr = tmpStr.replace(/(wants_\d+_data.+?].*}).*/g, '$1');
 	tmpStr = tmpStr.replace(/\\"/g, '\\"');
 	tmpStr = tmpStr.replace(/\}\}\]\}\}.*/g, '}}]}}');
-	// console.log(tmpStr);
+	// logger.debug(tmpStr);
 
 	try {
 		const jobs = JSON.parse(tmpStr);
@@ -186,7 +187,7 @@ function getJobs(html) {
 
 		return jobsArray;
 	} catch (error) {
-		console.log(error);
+		logger.debug(error);
 		return [];
 	}
 
@@ -203,7 +204,7 @@ function checkUnreadMessagesCounter(html) {
 	// 	k += +msgsCounterElement.eq(1).text();
 	// }
 	if (k) {
-		// sound.play(`${newMessageSoundFilePath}`).then((response) => console.log('done'));
+		// sound.play(`${newMessageSoundFilePath}`).then((response) => logger.debug('done'));
 		// notifier.notify({
 		// 	title: `НОВЫЕ СООБЩЕНИЯ`,
 		// 	message: `${parseInt(k, 10)}`,

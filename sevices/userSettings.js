@@ -5,7 +5,7 @@ const setCookieValuePrompt = (cb) => {
 	console.log(global.app.fileConfig.cookie);
 	prompt({
 		title: 'Set Cookie',
-		label: 'Cookie slrememberme:',
+		label: 'Cookie RORSSQIHEK:',
 		value: global.app.fileConfig.cookie,
 		inputAttrs: {
 			type: 'text',

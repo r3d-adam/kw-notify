@@ -6,6 +6,7 @@
 	"start": "node --experimental-modules",
 	"type": "commonjs",
 	"scripts": {
+		"preinstall": "npx npm-force-resolutions",
 		"electron dev": "electron main.js",
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"build": "electron-builder --dir",
@@ -21,19 +22,29 @@
 		"electron-packager": "^17.1.1",
 		"eslint": "^9.10.0",
 		"eslint-config-node": "^4.1.0",
-		"globals": "^15.9.0"
+		"globals": "^15.9.0",
+		"npm-force-resolutions": "^0.0.10"
 	},
 	"dependencies": {
+		"audio-loader": "^1.0.3",
+		"audio-play": "^2.3.1",
 		"axios": "^1.4.0",
 		"cheerio": "^1.0.0-rc.12",
 		"custom-electron-prompt": "^1.5.7",
 		"get-urls": "^10.0.0",
+		"howler": "^2.2.4",
 		"lodash": "^4.17.21",
 		"node-notifier": "^10.0.1",
 		"notifier": "^0.2.0",
 		"open": "^8.4.2",
-		"play-sound": "^1.1.5",
-		"sound-play": "^1.1.0"
+		"play-sound": "^1.1.6",
+		"sound-play": "^1.1.0",
+		"toastr": "^2.1.4",
+		"undici": "5.27.0",
+		"winston": "^3.17.0"
+	},
+	"resolutions": {
+		"undici": "5.27.0"
 	},
 	"build": {
 		"extraResources": [

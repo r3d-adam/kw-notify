@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>TFT Blacklist</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../node_modules/toastr/build/toastr.css">
+  <style>
+    #toast-container {
+      width: calc(100% - 20px);
+      margin: 0 auto;
+    }
+
+    #toast-container>div {
+      opacity: 1;
+      font-size: 17px;
+      font-family: Verdana;
+      width: 100%;
+      background-color: hsl(216, 28%, 7%);
+      border-radius: 12px;
+      color: hsl(0, 0%, 80%);
+      box-shadow: 0 0 2px rgba(255, 255, 255, 0.45), 0 0 8px rgba(255, 255, 255, 0.15);
+      padding: 15px;
+      margin: 0 auto 6px;
+    }
+
+    .toast-title {
+      font-size: 20px;
+      font-weight: 400;
+      color: hsl(0, 0%, 95%);
+      margin-bottom: 8px;
+    }
+
+    #toast-container .toast-message {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 7;
+      line-clamp: 7;
+      -webkit-box-orient: vertical;
+    }
+
+    #toast-container>.toast {
+      background-image: none !important;
+    }
+
+    .toast-progress {
+      background-color: #fff;
+      opacity: 0.2;
+    }
+  </style>
+</head>
+
+<body style="padding: 0; margin: 0;">
+  <div id="div-border"
+    style="position: absolute; width: 100%; height: 100%; border: 4px solid red; box-sizing: border-box; pointer-events: none; display: none;">
+  </div>
+  <div id="div-dev" style="padding-top: 50vh; text-align: center; display: none;">
+    <div
+      style="padding: 16px; border-radius: 8px; background: rgb(255,255,255); border: 4px solid red; display: inline-block;">
+      <span>Development Window</span>
+      <br><span><b>CmdOrCtrl + H</b> to send Demo Notification</span>
+      <br><span><b>CmdOrCtrl + J</b> to toggle this window</span>
+    </div>
+  </div>
+  <!-- <script>window.$ = window.jquery = require('jquery');</script> -->
+  <script src="./overlay.js"></script>
+</body>
+
+</html>

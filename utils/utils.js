@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const formatPrice = (price, postfix = ' ₽') => {
 	if (!price) {
 		return 0;
@@ -40,9 +43,21 @@ function getTime() {
 	return `${h}:${m}:${s}`;
 }
 
+function logError(message) {
+	const logFilePath = path.join(__dirname, 'error.log');
+	const logMessage = `${new Date().toISOString()} - ERROR: ${message}\n`;
+
+	fs.appendFile(logFilePath, logMessage, (err) => {
+		if (err) {
+			console.error('Failed to write to log file:', err);
+		}
+	});
+}
+
 module.exports = {
 	formatPrice,
 	compareByDateCreate,
 	getTime,
 	compareByDate,
+	logError,
 };

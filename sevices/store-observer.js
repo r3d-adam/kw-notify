@@ -1,3 +1,5 @@
+const logger = require("../utils/logger");
+
 class StoreObserver {
 	listeners = new Set();
 
@@ -34,7 +36,7 @@ class StoreObserver {
 		if (Object.hasOwn(this.store, 'getPage') && typeof this.store.getPage === 'function') {
 			try {
 				const result = await this.store.getPage();
-				console.log('StoreObserver getPage');
+				logger.debug('StoreObserver getPage');
 
 				this.listeners.forEach((listener) => listener(this.store));
 				return result;
@@ -48,7 +50,7 @@ class StoreObserver {
 		if ('getPage' in this.store && typeof this.store.getPage === 'function') {
 			try {
 				const result = await this.store.getMessages();
-				console.log('StoreObserver getMessages');
+				logger.debug('StoreObserver getMessages');
 
 				this.listeners.forEach((listener) => listener(this.store));
 				return result;
@@ -62,7 +64,7 @@ class StoreObserver {
 		if ('getActiveOrdersMessages' in this.store && typeof this.store.getPage === 'function') {
 			try {
 				const result = await this.store.getActiveOrdersMessages();
-				console.log('StoreObserver getActiveOrdersMessages');
+				logger.debug('StoreObserver getActiveOrdersMessages');
 
 				this.listeners.forEach((listener) => listener(this.store));
 				return result;

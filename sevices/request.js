@@ -16,8 +16,10 @@ const getPageRequestWithCookie = async (url, cookie) => {
 	try {
 		response = await axios.get(url, {
 			headers: {
-				Cookie: `slrememberme=${cookie}`,
+				// Cookie: `slrememberme=${cookie}`,
+				Cookie: `RORSSQIHEK=${cookie}`,
 			},
+			timeout: 30000
 		});
 		return checkResponse(response);
 	} catch (err) {
@@ -34,12 +36,13 @@ const requestWithCookie = async (url, cookie, options = { method: 'get', headers
 			url,
 			headers: {
 				...options.headers,
-				Cookie: `slrememberme=${cookie}`,
+				Cookie: `RORSSQIHEK=${cookie}`,
 			},
 		});
 
 		return checkResponse(response);
 	} catch (err) {
+		logError(err);
 		return Promise.reject(err.message || err);
 	}
 };
